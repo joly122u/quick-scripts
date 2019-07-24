@@ -15,18 +15,29 @@ import (
 func main() {
 	// Lock the OS Thread so we don’t accidentally switch namespaces
 	runtime.LockOSThread()
-	defer runtime.UnlockOSThread() // Save the current network namespace
+	defer runtime.UnlockOSThread()
+
+	// Save the current network namespace
 	origns, _ := netns.Get()
-	defer origns.Close() // Get the network namespace based on container id
-	newns, _ := netns.GetFromDocker("a115e93f5137")
+	defer origns.Close()
+
+	// Get the network namespace based on container id
+	newns, _ := netns.GetFromDocker("e25e1987a44c")
 	defer newns.Close()
-	netns.Set(newns) // Do something with the network namespace
+	netns.Set(newns)
+
+	// Do something with the network namespace
 	ifaces, _ := net.Interfaces()
 	fmt.Printf("Interfaces: %v\n", ifaces)
 	cmd := exec.Command("tshark", "-z", "conv,ip", "-i", "eth0")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
-	cmd.Run() //Return to original namespace
+	err := cmd.Run()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	//Return to original namespace
 	netns.Set(origns)
 }
