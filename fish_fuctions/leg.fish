@@ -1,11 +1,12 @@
-# Defined in /tmp/fish.Bor8mm/leg.fish @ line 2
+# Defined in /home/leow/.config/fish/functions/leg.fish @ line 2
 function leg
     set acc /tmp/.accumalator
-    le accounts | awk '{ print length($0) "," $0 }' | sort > $acc;
-    le payees | awk '{ print length($0) ",@" $0 }' | sort >> $acc;
+    echo '' > $acc
+    le accounts | awk '{ print length($0) " " $0 }' | sort | awk '{ print $2 }' >> $acc
+    le payees | awk '{ print length($0) " @" $0 }' | sort | awk '{ print $2 }' >> $acc
     fzf --multi \
-        --preview 'echo ledger {q} | sh' \
-        --bind 'ctrl-l:preview(echo ledger {q} | sh),ctrl-b:preview(ledger b {}),ctrl-r:preview(ledger r {})' \
-        --preview-window top:90% --with-nth 2 -d , --sync \
+        --preview 'echo ledger --force-color {q} | sh' \
+        --bind 'enter:preview(echo ledger --force-color {q} | sh),ctrl-d:preview(xargs -- echo < {f}),ctrl-b:preview(xargs -- ledger --force-color cleared < {f}),ctrl-m:preview(xargs -- ledger --force-color r < {f}),ctrl-h:preview(ledger --help)' \
+        --preview-window top:90% --sync \
         --keep-right < $acc
 end
